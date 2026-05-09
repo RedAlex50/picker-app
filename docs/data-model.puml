@@ -1,0 +1,115 @@
+@startuml PickerApp Data Model
+hide circle
+skinparam classAttributeIconSize 0
+
+entity picker {
+  *id : uuid <<PK>>
+  --
+  login : text
+  pin_hash : text
+  full_name : text
+}
+
+entity shift {
+  *id : uuid <<PK>>
+  --
+  picker_id : uuid <<FK>>
+  darkstore_id : uuid
+  started_at : timestamptz
+  ended_at : timestamptz
+}
+
+entity sku {
+  *id : uuid <<PK>>
+  --
+  ean13 : char(13)
+  name : text
+  temp_zone : text
+  gross_weight_g : integer
+  unit : text
+}
+
+entity cell {
+  *id : uuid <<PK>>
+  --
+  code : text
+  zone : text
+  row_no : smallint
+  level : smallint
+}
+
+entity batch {
+  *id : uuid <<PK>>
+  --
+  sku_id : uuid <<FK>>
+  cell_id : uuid <<FK>>
+  expires_at : date
+  qty_on_hand : numeric(10,3)
+}
+
+entity pick_order {
+  *id : uuid <<PK>>
+  --
+  shift_id : uuid <<FK>>
+  order_no : text
+  status : text
+  priority : smallint
+  slot_at : timestamptz
+  created_at : timestamptz
+}
+
+entity pick_item {
+  *id : uuid <<PK>>
+  --
+  order_id : uuid <<FK>>
+  sku_id : uuid <<FK>>
+  cell_id : uuid <<FK>>
+  batch_id : uuid <<FK>>
+  qty_required : numeric(10,3)
+  qty_picked : numeric(10,3)
+  status : text
+}
+
+entity box {
+  *id : uuid <<PK>>
+  --
+  order_id : uuid <<FK>>
+  temp_zone : text
+  label_zpl : text
+  sealed_at : timestamptz
+}
+
+entity substitution {
+  *id : uuid <<PK>>
+  --
+  item_id : uuid <<FK>>
+  original_sku_id : uuid <<FK>>
+  suggested_sku_id : uuid <<FK>>
+  decision : text
+  decided_at : timestamptz
+}
+
+entity pick_event <<partitioned>> {
+  *id : uuid <<PK>>
+  --
+  order_id : uuid <<FK>>
+  picker_id : uuid <<FK>>
+  event_type : text
+  payload : jsonb
+  occurred_at : timestamptz
+}
+
+picker ||--o{ shift
+shift ||--o{ pick_order
+sku ||--o{ batch
+cell ||--o{ batch
+pick_order ||--o{ pick_item
+pick_order ||--o{ box
+pick_order ||--o{ pick_event
+sku ||--o{ pick_item
+cell ||--o{ pick_item
+batch ||--o{ pick_item
+pick_item ||--o{ substitution
+sku ||--o{ substitution
+picker ||--o{ pick_event
+@enduml
