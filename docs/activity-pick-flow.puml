@@ -1,0 +1,36 @@
+@startuml Pick Flow Activity
+start
+:Аутентификация пикера (PIN, привязка к смене);
+:Получение очереди нарядов от POS;
+:Выбор наряда с наивысшим приоритетом;
+repeat
+  :Подсветка следующей ячейки по маршруту;
+  :Скан ячейки (cell.code);
+  if (ячейка верна?) then (да)
+    :Скан SKU (EAN-13);
+    if (EAN-13 корректен и совпадает) then (да)
+      :Подбор партии по FEFO (min expires_at);
+      :Ввод количества (qty_picked);
+      :pick_item.status := PICKED;
+    else (нет)
+      :Запрос замены через LA;
+      if (клиент одобрил замену?) then (да)
+        :pick_item.status := SUBSTITUTED;
+      else (нет)
+        :pick_item.status := SHORT;
+      endif
+    endif
+    :Запись события SCAN_SKU в pick_event;
+  else (нет)
+    :Ошибка маршрута, повтор скана;
+  endif
+repeat while (есть позиции PENDING?) is (да)
+->нет;
+:pick_order.status := PACKING;
+:Формирование боксов по temp_zone (FFD, <=15 кг);
+:Генерация ZPL и отправка в Print Service;
+:pick_order.status := READY;
+:Передача заказа курьеру (скан QR курьера);
+:pick_order.status := HANDED_OVER;
+stop
+@enduml

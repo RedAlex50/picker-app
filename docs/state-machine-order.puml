@@ -1,0 +1,14 @@
+@startuml Order State Machine
+[*] --> NEW : Создание наряда в POS
+NEW --> PICKING : Пикер открыл наряд
+PICKING --> PICKING : Скан SKU / SHORT / SUBSTITUTE
+PICKING --> PACKING : Все позиции PICKED/SUBSTITUTED/SHORT
+PACKING --> PACKING : Закрытие очередного бокса
+PACKING --> READY : Все боксы запечатаны и распечатаны
+READY --> HANDED_OVER : Скан курьера и боксов
+NEW --> CANCELLED : Отмена клиентом
+PICKING --> CANCELLED : Отмена клиентом
+PACKING --> CANCELLED : Отмена клиентом
+HANDED_OVER --> [*]
+CANCELLED --> [*]
+@enduml
