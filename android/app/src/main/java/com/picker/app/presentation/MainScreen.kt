@@ -23,7 +23,7 @@ fun MainScreen(navController: NavHostController = rememberNavController()) {
 private fun StatusBar() {
     Box(Modifier.fillMaxWidth().padding(8.dp)) {
         Text(
-            text = "PickerApp v1.4.0 · Kotlin 2.0 · Compose 1.7 · Room",
+            text = "PickerApp v1.4.0 · Kotlin 2.0 · Compose 1.7 · Spring Boot 3.3 · PostgreSQL 16",
             style = MaterialTheme.typography.bodySmall,
         )
     }
