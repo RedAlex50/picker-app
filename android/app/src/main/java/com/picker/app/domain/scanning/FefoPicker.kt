@@ -11,8 +11,21 @@ import javax.inject.Inject
  * с самой ранней датой годности, чтобы списать максимум остатка.
  */
 class FefoPicker @Inject constructor(private val batchDao: BatchDao) {
-    suspend fun pick(skuId: String, qtyRequired: Double): BatchEntity? {
+
+    class NoBatchAvailableException(
+        val skuId: String,
+        val cellId: String?,
+        message: String,
+    ) : IllegalStateException(message)
+
+    suspend fun pick(skuId: String, cellId: String?, qtyRequired: Double): BatchEntity {
         val candidates = batchDao.fefoCandidates(skuId, qtyRequired)
-        return candidates.firstOrNull()
+        return candidates.firstOrNull() ?: throw NoBatchAvailableException(
+            skuId = skuId,
+            cellId = cellId,
+            message = "Нет партии по FEFO для sku_id=$skuId" +
+                (cellId?.let { ", cell_id=$it" } ?: "") +
+                "; запустите согласование замены (Ф5).",
+        )
     }
 }
